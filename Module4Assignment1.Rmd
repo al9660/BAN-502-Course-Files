@@ -1,0 +1,34 @@
+```{r}
+install.packages("mice")
+install.packages("VIM")
+install.packages("naniar")
+install.packages("skimr")
+install.packages("UpSetR")
+```
+
+```{r}
+
+```
+```{r}
+str(class_grades)
+summary(class_grades)
+skim(class_grades)
+```
+
+Question 3-4
+```{r}
+grades_clean = class_grades %>% drop_na("Tutorial", "Midterm", "TakeHome", "Final")
+```
+
+```{r}
+set.seed(1234)
+imp_grade = mice(class_grades, m=5, method='pmm', printFlag=FALSE)
+summary(imp_grade)
+```
+
+```{r}
+grade_complete = complete(imp_grade)
+summary(grade_complete)
+```
+
+

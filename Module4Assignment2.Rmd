@@ -1,0 +1,97 @@
+```{r}
+install.packages("rpart")
+install.packages("rpart.plot")
+install.packages("RColorBrewer")
+install.packages("Rattle")
+install.packages("caret")
+```
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+library(mice)
+library(VIM)
+library(naniar)
+library(skimr)
+library(UpSetR)
+library(glmnet)
+library(e1071)
+library(ROCR)
+library(rpart)
+library(rpart.plot)
+library(RColorBrewer)
+library(rattle)
+library(caret)
+```
+Question 1
+```{r}
+heart = heart_disease_1
+str(heart)
+summary(heart)
+skim(heart)
+```
+```{r}
+heart = heart %>% 
+  mutate(HeartDisease = as_factor(HeartDisease)) %>%
+  mutate(ST_Slope = fct_recode(ST_Slope, "No" = "Up","No" = "Down", "Yes" = "Flat"))
+```
+```{r}
+
+```
+
+```{r}
+set.seed(123)
+heart_split = initial_split(heart, prop = 0.7, strata = HeartDisease)
+train3 = training(heart_split)
+test3 = testing(heart_split)
+```
+Question 3
+```{r}
+heart_recipe = recipe(HeartDisease ~., test3) %>%
+ step_dummy(all_nominal(),-all_outcomes())
+tree_model = decision_tree() %>%
+  set_engine("rpart", model = TRUE) %>%
+  set_mode("classification")
+
+heart_wflow = 
+  workflow() %>%
+  add_model(tree_model) %>%
+  add_recipe(heart_recipe)
+
+heart_fit = fit(heart_wflow, test3)
+```
+```{r}
+heart_fit %>%
+  pull_workflow_fit() %>%
+  pluck("fit")
+```
+```{r}
+tree = heart_fit %>%
+  extract_fit_parsnip() %>%
+  pluck("fit")
+
+rpart.plot(tree)
+```
+```{r}
+heart_fit$fit$fit$fit$cptable
+```
+```{r}
+treepred = predict(heart_fit, train3, type = "class")
+head(treepred)
+```
+```{r}
+confusionMatrix(treepred$.pred_class,train3$HeartDisease, positive = "1")
+```
+
+```{r}
+treepred = predict(heart_fit, test3, type = "class")
+head(treepred)
+```
+
+Caret confusion matrix and accuracy, etc. calcs  
+```{r}
+confusionMatrix(treepred$.pred_class,test3$HeartDisease, positive = "1")
+```
+```
+

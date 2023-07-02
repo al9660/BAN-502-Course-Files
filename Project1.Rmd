@@ -1,0 +1,67 @@
+Project Phase 1
+Alex Lang
+```{r}
+install.packages('gridExtra')
+install.packages('ggcorrplot')
+```
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+library(ggcorrplot)
+library(gridExtra)
+```
+
+Reading in and Renaming Dataset
+```{r}
+house = ames_student_1
+```
+```{r}
+str(house)
+summary(house)
+```
+Mutating variables
+```{r}
+house = house %>% mutate(Above_Median = as_factor(Above_Median)) %>% 
+  mutate(Above_Median = fct_recode(Above_Median, "No" = "0", "Yes" = "1" )) %>% 
+  mutate(Overall_Qual= as_factor(Overall_Qual))
+summary(house)
+```
+Looking at house built after median year built, 1972
+```{r}
+houseyear1 = house %>% filter(Year_Built>1972)
+houseyear2 = house %>% filter(Year_Built<=1972)
+summary(houseyear1)
+summary(houseyear2)
+```
+Creating a scatter plot to show which houses were above median based off Year Built
+```{r}
+p1 = ggplot(house, aes(x=Year_Built,y=Above_Median)) + geom_point()+theme_bw()
+grid.arrange(p1)
+```
+Creating a bar plot that shows count of above_median homes by neighborhood
+```{r}
+p2 = ggplot(house) +geom_bar(aes(x = Neighborhood)) +ylab("Above_Median")
+grid.arrange(p2)
+```
+Creating a bar plot that shows count of homes by Overall_Qual
+```{r}
+ggplot(house, aes(x=Overall_Qual)) +geom_bar()
+```
+Creating a new variable that sums 1st floor sqft plus 2nd floor sqft to find mean sqft. 
+```{r}
+housesqft = house$First_Flr_SF + house$Second_Flr_SF
+summary(housesqft)
+```
+Using mean sqft to fund houses below and above average
+```{r}
+house = data.frame(house,housesqft)
+```
+```{r}
+housesqft1 = house %>% filter(housesqft>1494)
+housesqft2 = house %>% filter(housesqft<=1494)
+summary(housesqft1)
+summary(housesqft2)
+```
+

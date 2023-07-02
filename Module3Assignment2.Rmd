@@ -1,0 +1,102 @@
+```{r}
+install.packages("glmnet")
+```
+```{r}
+install.packages("e1071")
+```
+```{r}
+install.packages("ROCR")
+```
+
+
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+library(glmnet)
+library(GGally)
+library(e1071)
+library(ROCR)
+```
+
+Load Parol Daatset
+```{r}
+parole1 = parole
+```
+
+Structure and Summary
+```{r}
+structure(parole1)
+summary(parole1)
+```
+```{r}
+parole = parole %>% mutate(violator = as_factor(violator)) %>% mutate(violator = fct_recode(violator, "No" = "0", "Yes" = "1")) %>% mutate(multiple.offenses = as_factor(multiple.offenses)) %>% mutate(race = as_factor(race))
+summary(parole)
+```
+
+```{r}
+ggplot(parole, aes(x=violator, fill = violator)) + geom_bar(position="fill") + theme_bw()
+```
+```{r}
+set.seed(12345)
+parole_split = initial_split(parole, prop = .70, strata = violator)
+train2 = training(parole_split)
+test2 = testing(parole_split)
+```
+```{r}
+parole_model =
+  logistic_reg() %>%
+  set_engine("glm")
+
+parole_recipe = recipe(violator ~ state + multiple.offenses + race, train2) %>%
+  step_dummy(all_nominal(), -all_outcomes())
+
+logreg_wf = workflow() %>%
+  add_recipe(parole_recipe) %>%
+  add_model(parole_model)
+parole_fit = fit(logreg_wf, train2)
+  
+```
+```{r}
+summary(parole_fit$fit$fit$fit)
+```
+```{r}
+newdata = data.frame(race = "1", state = "3", multiple.offenses = "1")
+```
+```{r}
+predict(parole_fit, newdata, type="prob")
+```
+Develop Predictions Question 10
+```{r}
+predictions = predict(parole_fit, test2, type = "prob")[2]
+head(predictions)
+```
+Threshold
+```{r}
+ROCRpred = prediction(predictions, train2$violator)
+ROCRperf = performance(ROCRpred, "tpr", "fpr")
+plot(ROCRperf, colorize=TRUE, print.cutoffs.at=seq(0,1,by=0.1), text.adj=c(-.2,1.7))
+```
+Thresholds
+```{r}
+opt.cut = function(perf, pred){cut.ind =mapply(FUN = function(x,y,p){d = (x-0)^2+ (y-1)^2
+ind = which(d ==min(d))
+c(sensitivity = y[[ind]], specificity = 1-x[[ind]],cutoff = p[[ind]])
+}, perf@x.values, perf@y.values, pred@cutoffs)}
+print(opt.cut(ROCRperf, ROCRpred))
+```
+Test Thresholds
+```{r}
+t1 = table(test2$violator, predictions > 0.2015788)
+t1
+```
+Calculate Accuracy
+```{r}
+(t1[1,1]+t1[2,2])/nrow(test2)
+```
+```{r}
+36/(18+36)
+```
+
+

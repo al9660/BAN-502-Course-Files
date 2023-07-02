@@ -1,0 +1,36 @@
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(glmet)
+library(GGally)
+library(ggcorrplot)
+library(Mass)
+```
+
+
+
+```{r}
+bike = bike_cleaned_3
+```
+```{r}
+summary(bike)
+str(bike)
+```
+```{r}
+bike <- bike %>% mutate(hr = as_factor(hr))
+```
+```{r}
+bike_recipe = lm(count + temp ~ hr, bike)
+summary(bike_recipe)
+```
+
+```{r}
+bike <- bike %>% mutate(hr = as_factor(hr))
+```
+```{r}
+bike_recipe = lm(temp + atemp ~ count, bike)
+summary(bike_recipe)
+
+```
+
+
